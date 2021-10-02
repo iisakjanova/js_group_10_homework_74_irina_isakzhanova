@@ -4,6 +4,10 @@ const fs = require('fs');
 const path = "./messages";
 const router = express.Router();
 
+if (!fs.existsSync(path)){
+  fs.mkdirSync(path);
+}
+
 router.post('/', (req, res) => {
   const date = new Date();
   const datetime = date.toISOString();
