@@ -24,32 +24,42 @@ router.post('/', (req, res) => {
   res.send(body);
 });
 
+const getListDir = async () => {
+  let listDir = [];
+
+  try {
+    const files = await fs.promises.readdir(path);
+    files.forEach(file => {
+      listDir.push(path + '/' + file);
+    });
+
+  } catch (e) {
+    console.error(e);
+  }
+
+  return listDir;
+};
+
+const getContents = async (dirs) => {
+  let contents;
+
+  try {
+    const lastFiveDirsPromises = dirs.map(dir => fs.promises.readFile(dir, 'utf8'));
+    contents = await Promise.all(lastFiveDirsPromises);
+  } catch (e) {
+    console.error(e);
+  }
+
+  return contents;
+};
+
 router.get('/', (req, res) => {
   (async () => {
-    let listDir = [];
-
-    try {
-      const files = await fs.promises.readdir(path);
-      files.forEach(file => {
-        listDir.push(path + '/' + file);
-      });
-
-    } catch (e) {
-      console.error(e);
-    }
-
+    const listDir = await getListDir();
     const lastFiveDirs = listDir.slice(-5);
-
-    let contents;
-
-    try {
-      const lastFiveDirsPromises = lastFiveDirs.map(dir => fs.promises.readFile(dir, 'utf8'));
-      contents = await Promise.all(lastFiveDirsPromises);
-    } catch (e) {
-      console.error(e);
-    }
-
+    const contents = await getContents(lastFiveDirs);
     const data = contents.map(content => JSON.parse(content));
+
     res.send(data);
   })();
 });
